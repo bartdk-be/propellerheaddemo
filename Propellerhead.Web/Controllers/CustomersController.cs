@@ -10,17 +10,17 @@ namespace Propellerhead.Web.Controllers
 {
     public class CustomersController : Controller
     {
-        private readonly CrmDbContext _context;
+        private readonly ICustomerRepository _customerRepository;
 
-        public CustomersController(CrmDbContext context)
+        public CustomersController(ICustomerRepository customerRepository)
         {
-            _context = context;
+            _customerRepository = customerRepository;
         }
 
         // GET: Customers
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Customers.ToListAsync());
+            return View(await _customerRepository.GetAll());
         }
 
         // GET: Customers/Details/5
@@ -31,8 +31,7 @@ namespace Propellerhead.Web.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var customer = await _customerRepository.GetAsync(id.Value);
             if (customer == null)
             {
                 return NotFound();
@@ -52,13 +51,13 @@ namespace Propellerhead.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Identifier,CreationDate,Name,FirstName,Street,Number,PostalCode,Country,CustomerStatus")] Customer customer)
+        public async Task<IActionResult> Create([Bind("Id,Identifier,Name,FirstName,Street,Number,PostalCode,Country,CustomerStatus")] Customer customer)
         {
             if (ModelState.IsValid)
             {
-                customer.Id = Guid.NewGuid();
-                _context.Add(customer);
-                await _context.SaveChangesAsync();
+                _customerRepository.Insert(customer);
+                await _customerRepository.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
             return View(customer);
@@ -72,7 +71,7 @@ namespace Propellerhead.Web.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _customerRepository.GetAsync(id.Value);
             if (customer == null)
             {
                 return NotFound();
@@ -85,7 +84,7 @@ namespace Propellerhead.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Identifier,CreationDate,Name,FirstName,Street,Number,PostalCode,Country,CustomerStatus")] Customer customer)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,CustomerStatus")] Customer customer)
         {
             if (id != customer.Id)
             {
@@ -96,8 +95,8 @@ namespace Propellerhead.Web.Controllers
             {
                 try
                 {
-                    _context.Update(customer);
-                    await _context.SaveChangesAsync();
+                    await _customerRepository.Update(customer);
+                    await _customerRepository.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -105,10 +104,8 @@ namespace Propellerhead.Web.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -123,8 +120,7 @@ namespace Propellerhead.Web.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var customer = await _customerRepository.GetAsync(id.Value);
             if (customer == null)
             {
                 return NotFound();
@@ -138,15 +134,14 @@ namespace Propellerhead.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var customer = await _context.Customers.FindAsync(id);
-            _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync();
+            await _customerRepository.Remove(id);
+            await _customerRepository.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool CustomerExists(Guid id)
         {
-            return _context.Customers.Any(e => e.Id == id);
+            return _customerRepository.Any(id);
         }
     }
 }
