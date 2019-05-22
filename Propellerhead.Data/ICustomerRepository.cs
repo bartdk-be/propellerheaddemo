@@ -11,7 +11,7 @@ namespace Propellerhead.Data
         Task SaveChangesAsync();
         Task<Customer> GetAsync(Guid id);
         Task<List<Customer>> GetAll();
-        Task Update(Customer customer);
+        void Update(Customer customer);
         bool Any(Guid id);
         Task Remove(Guid id);
     }

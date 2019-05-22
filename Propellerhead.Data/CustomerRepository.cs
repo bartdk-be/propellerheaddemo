@@ -18,7 +18,6 @@ namespace Propellerhead.Data
 
         public void Insert(Customer customer)
         {
-            customer.Id = Guid.NewGuid();
             customer.CreationDate = DateTime.UtcNow;
             _context.Customers.Add(customer);
         }
@@ -30,7 +29,9 @@ namespace Propellerhead.Data
 
         public async Task<Customer> GetAsync(Guid id)
         {
-            return await _context.Customers.SingleOrDefaultAsync(x => x.Id == id);
+            return await _context.Customers
+                                 .Include(x => x.Notes)
+                                 .SingleOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<List<Customer>> GetAll()
@@ -38,12 +39,9 @@ namespace Propellerhead.Data
             return await _context.Customers.ToListAsync();
         }
 
-        public async Task Update(Customer customer)
+        public void Update(Customer customer)
         {
-            var storeCustomer = await GetAsync(customer.Id);
-            storeCustomer.CustomerStatus = customer.CustomerStatus;
-
-            _context.Customers.Update(storeCustomer);
+            _context.Customers.Update(customer);
         }
 
         public bool Any(Guid id)
@@ -57,7 +55,7 @@ namespace Propellerhead.Data
             if (customer != null)
             {
                 _context.Customers.Remove(customer);
-            }            
+            }
         }
     }
 }

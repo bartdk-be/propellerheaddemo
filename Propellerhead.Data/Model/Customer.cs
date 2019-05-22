@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Propellerhead.Data.Model
 {
-    public class Customer
+    public class Customer : BaseEntity
     {
-        [Key] 
-        public Guid  Id { get; set; }
+        public Customer()
+        {
+            Notes = new List<CustomerNote>();
+        }
 
         [MaxLength(250)]
         public string Identifier { get; set; }
@@ -29,5 +32,7 @@ namespace Propellerhead.Data.Model
 
         [EnumDataType(typeof(CustomerStatus))]
         public CustomerStatus CustomerStatus { get; set; }
+
+        public List<CustomerNote> Notes { get; set; }
     }
 }

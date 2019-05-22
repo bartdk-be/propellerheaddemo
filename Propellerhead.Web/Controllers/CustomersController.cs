@@ -95,7 +95,9 @@ namespace Propellerhead.Web.Controllers
             {
                 try
                 {
-                    await _customerRepository.Update(customer);
+                    var storeCustomer = await _customerRepository.GetAsync(customer.Id);
+                    storeCustomer.CustomerStatus = customer.CustomerStatus;
+                    _customerRepository.Update(storeCustomer);
                     await _customerRepository.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -142,6 +144,31 @@ namespace Propellerhead.Web.Controllers
         private bool CustomerExists(Guid id)
         {
             return _customerRepository.Any(id);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddNote(CustomerNote customerNote)
+        {
+            if (ModelState.IsValid)
+            {
+                var customer = await _customerRepository.GetAsync(customerNote.CustomerId);
+                customerNote.Id = Guid.NewGuid();
+
+                customer.Notes.Add(customerNote);
+
+                _customerRepository.Update(customer);
+                await _customerRepository.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(customerNote);
+        }
+
+        public IActionResult AddNote(Guid id)
+        {
+            return View(new CustomerNote { CustomerId = id });
         }
     }
 }
