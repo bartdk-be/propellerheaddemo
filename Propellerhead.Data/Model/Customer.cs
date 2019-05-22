@@ -27,6 +27,7 @@ namespace Propellerhead.Data.Model
         [MaxLength(50)]
         public string Country { get; set; }
 
+        [EnumDataType(typeof(CustomerStatus))]
         public CustomerStatus CustomerStatus { get; set; }
     }
 }
