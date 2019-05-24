@@ -9,6 +9,7 @@ namespace Propellerhead.Data.Model
         public Customer()
         {
             Notes = new List<CustomerNote>();
+            Identifier = Guid.NewGuid().ToString();
         }
 
         [MaxLength(250)]
